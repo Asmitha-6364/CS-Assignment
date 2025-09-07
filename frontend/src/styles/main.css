@@ -1,21 +1,58 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
-    color: #212529;
-    margin: 0; padding: 0;
-  }
-  input, textarea, button {
-    margin-top: 8px;
-    margin-bottom: 8px;
-    padding: 8px;
-    font-size: 14px;
-    width: 100%;
-  }
-  button {
-    cursor: pointer;
-  }
-  hr {
-    margin: 30px 0;
-    border: 0; border-top: 1px solid #ccc;
-  }
-  
+.auth-container {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 30px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.auth-container input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.auth-container button {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  background-color: #61dafb;
+  color: #fff;
+  cursor: pointer;
+}
+
+.auth-container button:hover {
+  background-color: #21a1f1;
+}
+
+.auth-container .error {
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.auth-container p {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.auth-container a {
+  color: #61dafb;
+  text-decoration: none;
+}
+.auth-container a:hover {
+  text-decoration: underline;
+}

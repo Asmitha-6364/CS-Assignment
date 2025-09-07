@@ -1,97 +1,107 @@
-// import logo from './logo.svg';
-// import './App.css';
+import React, { useState, useEffect, useContext } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
+import { KeyProvider } from "./contexts/KeyContext";
+import { AuthProvider, AuthContext } from "./contexts/AuthContext";
 
-// export default App;
+import Login from "./components/Auth/Login";
+import Signup from "./components/Auth/Signup";
+import PrivateRouter from "./components/PrivateRouter";
+import Header from "./components/Layout/Header";
+import Sidebar from "./components/Layout/Sidebar";
 
+import KeyManager from "./components/KeyManager";
+import FileUploader from "./components/FileUploader";
+import FileDownloader from "./components/FileDownloader";
+import VaultDashboard from "./components/VaultDashboard";
+import { fetchFileList } from "./utils/api";
 
-// import React from 'react';
-// import { KeyProvider } from './contexts/KeyContext';
-// import KeyManager from './components/KeyManager';
-// import FileUploader from './components/FileUploader';
-// import FileDownloader from './components/FileDownloader';
-// import VaultDashboard from './components/VaultDashboard';
+import "./App.css";
 
-// function App() {
-//   return (
-//     <KeyProvider>
-//       <div className="App" style={{ maxWidth: 800, margin: 'auto', padding: 20 }}>
-//         <h1>Secure File Vault</h1>
-//         <KeyManager />
-//         <hr />
-//         <FileUploader />
-//         <hr />
-//         <VaultDashboard />
-//         <hr />
-//         <FileDownloader />
-//       </div>
-//     </KeyProvider>
-//   );
-// }
-
-// export default App;
-
-
-
-import React, { useState, useEffect } from 'react';
-import { KeyProvider } from './contexts/KeyContext';
-import KeyManager from './components/KeyManager';
-import FileUploader from './components/FileUploader';
-import FileDownloader from './components/FileDownloader';
-import VaultDashboard from './components/VaultDashboard';
-import { fetchFileList } from './utils/api';
-
-function App() {
+function AppContent() {
+  const { user } = useContext(AuthContext);
   const [files, setFiles] = useState([]);
+  const [currentPage, setCurrentPage] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const refreshFileList = async () => {
     try {
       const { data } = await fetchFileList();
       setFiles(data);
     } catch (err) {
-      console.error('Failed to fetch file list:', err);
+      console.error("Failed to fetch file list:", err);
+      setFiles([]);
     }
   };
 
+  // Refresh file list whenever the logged-in user changes
   useEffect(() => {
-    refreshFileList();
-  }, []);
+    if (user) {
+      refreshFileList();
+    } else {
+      setFiles([]); // clear files on logout
+    }
+  }, [user]);
 
   return (
-    <KeyProvider>
-      <div className="App" style={{ maxWidth: 800, margin: 'auto', padding: 20 }}>
-        <h1>Secure File Vault</h1>
-        <KeyManager />
-        <hr />
-        <FileUploader refreshFileList={refreshFileList} />
-        <hr />
-        <VaultDashboard files={files} />
-        <hr />
-        <FileDownloader />
-      </div>
-    </KeyProvider>
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* Protected Routes */}
+        <Route
+          path="/"
+          element={
+            <PrivateRouter>
+              <div className="app-layout" style={{ marginTop: "60px" }}>
+                <Sidebar
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  isOpen={sidebarOpen}
+                />
+                <div className="main-content">
+                  <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+
+                  {/* Dashboard Section */}
+                  <section id="dashboard" className="page-section">
+                    <h1>Secure File Vault Dashboard</h1>
+                    <VaultDashboard files={files} />
+                  </section>
+
+                  {/* Key Manager Section */}
+                  <section id="keyManager" className="page-section">
+                    <KeyManager />
+                  </section>
+
+                  {/* Upload Section */}
+                  <section id="upload" className="page-section">
+                    <FileUploader refreshFileList={refreshFileList} />
+                  </section>
+
+                  {/* Download Section */}
+                  <section id="download" className="page-section">
+                    <FileDownloader />
+                  </section>
+                </div>
+              </div>
+            </PrivateRouter>
+          }
+        />
+      </Routes>
+    </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <KeyProvider>
+        <AppContent />
+      </KeyProvider>
+    </AuthProvider>
   );
 }
 
 export default App;
-

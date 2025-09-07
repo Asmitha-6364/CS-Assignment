@@ -1,17 +1,36 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE = 'http://localhost:5000/api/files';
+// Base axios instance
+const API = axios.create({
+  baseURL: "http://localhost:5000/api/files",
+});
 
+// Attach JWT token to every request if available
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// File APIs
 export async function uploadFile(formData) {
-  return axios.post(`${API_BASE}/upload`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+  return API.post("/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
 }
 
 export async function fetchFileList() {
-  return axios.get(`${API_BASE}/list`);
+  return API.get("/list");
 }
 
 export async function fetchFileMeta(filename) {
-  return axios.get(`${API_BASE}/download/${filename}`);
+  return API.get(`/download/${encodeURIComponent(filename)}`);
 }
+
+// ✅ only keep this for new listing function
+export const getFiles = async () => {
+  const res = await API.get("/list");
+  return res.data;
+};

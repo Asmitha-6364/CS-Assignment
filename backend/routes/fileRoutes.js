@@ -1,136 +1,85 @@
-// const express = require('express');
-// const multer = require('multer');
-// const path = require('path');
-// const fs = require('fs');
-
-// const router = express.Router();
-
-// // Multer storage config
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, process.env.UPLOAD_DIR || './uploads');
-//   },
-//   filename: function (req, file, cb) {
-//     // Use original filename for simplicity; could add uniqueIDs
-//     cb(null, file.originalname);
-//   },
-// });
-// const upload = multer({ storage });
-
-// // In-memory metadata store (for demo only)
-// const fileMeta = {};
-
-// // Upload encrypted file + meta
-// router.post('/upload', upload.single('encryptedFile'), (req, res) => {
-//   const { iv, encryptedAESKeyHex, originalFileName } = req.body;
-
-//   if (!req.file || !iv || !encryptedAESKeyHex || !originalFileName) {
-//     return res.status(400).json({ message: 'Missing required fields' });
-//   }
-
-//   // Save metadata
-//   fileMeta[req.file.filename] = {
-//     iv,
-//     encryptedAESKeyHex,
-//     originalFileName,
-//   };
-
-//   res.json({ message: 'File uploaded successfully', filename: req.file.filename });
-// });
-
-// // List files
-// router.get('/list', (req, res) => {
-//   const files = Object.keys(fileMeta).map((filename) => ({
-//     filename,
-//     originalFileName: fileMeta[filename].originalFileName,
-//   }));
-//   res.json(files);
-// });
-
-// // Download encrypted file metadata + file content url
-// router.get('/download/:filename', (req, res) => {
-//   const meta = fileMeta[req.params.filename];
-//   if (!meta) {
-//     return res.status(404).json({ message: 'File not found' });
-//   }
-//   // Return file URL and metadata
-//   res.json({
-//     fileUrl: `${req.protocol}://${req.get('host')}/uploads/${req.params.filename}`,
-//     iv: meta.iv,
-//     encryptedAESKeyHex: meta.encryptedAESKeyHex,
-//     originalFileName: meta.originalFileName,
-//   });
-// });
-
-// module.exports = router;
-
-
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const authMiddleware = require('../middleware/authMiddleware');
+const File = require('../models/File');
 
 const router = express.Router();
 
-// Multer storage config
+// Multer storage config - per user folders
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, process.env.UPLOAD_DIR || './uploads');
+    const baseDir = process.env.UPLOAD_DIR || './uploads';
+    const userDir = path.join(baseDir, req.user.id.toString());
+    fs.mkdirSync(userDir, { recursive: true }); // create user folder if missing
+    cb(null, userDir);
   },
   filename: function (req, file, cb) {
-    // Use original filename for simplicity; could add uniqueIDs
-    cb(null, file.originalname);
+    cb(null, Date.now() + '-' + file.originalname); // prevent overwrites
   },
 });
 const upload = multer({ storage });
 
-// In-memory metadata store (for demo only)
-const fileMeta = {};
-
-// Upload encrypted file + meta
-router.post('/upload', upload.single('encryptedFile'), (req, res) => {
+// Upload encrypted file + metadata
+router.post('/upload', authMiddleware, upload.single('encryptedFile'), async (req, res) => {
   const { iv, encryptedAESKeyHex, originalFileName } = req.body;
 
   if (!req.file || !iv || !encryptedAESKeyHex || !originalFileName) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
-  // Save metadata keyed by exact filename
-  fileMeta[req.file.filename] = {
-    iv,
-    encryptedAESKeyHex,
-    originalFileName,
-  };
+  try {
+    const newFile = new File({
+      user: req.user.id,
+      filename: req.file.filename, // saved encrypted filename
+      originalFileName,
+      iv,
+      encryptedAESKeyHex,
+    });
+    await newFile.save();
 
-  res.json({ message: 'File uploaded successfully', filename: req.file.filename });
-});
-
-// List files
-router.get('/list', (req, res) => {
-  const files = Object.keys(fileMeta).map((filename) => ({
-    filename,
-    originalFileName: fileMeta[filename].originalFileName,
-  }));
-  res.json(files);
-});
-
-// Download encrypted file metadata + file content url
-router.get('/download/:filename', (req, res) => {
-  const filename = decodeURIComponent(req.params.filename);
-  console.log('Download requested for file:', filename);
-
-  const meta = fileMeta[filename];
-  if (!meta) {
-    return res.status(404).json({ message: 'File not found' });
+    res.json({ message: 'File uploaded successfully', filename: req.file.filename });
+  } catch (err) {
+    console.error('DB save error:', err);
+    res.status(500).json({ message: 'Error saving file metadata' });
   }
+});
 
-  // Return file URL and metadata, encoding filename for URL safety
-  res.json({
-    fileUrl: `${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(filename)}`,
-    iv: meta.iv,
-    encryptedAESKeyHex: meta.encryptedAESKeyHex,
-    originalFileName: meta.originalFileName,
-  });
+// List files for logged-in user
+router.get('/list', authMiddleware, async (req, res) => {
+  try {
+    const files = await File.find({ user: req.user.id })
+      .select('filename originalFileName uploadedAt');
+    res.json(files);
+  } catch (err) {
+    console.error('DB fetch error:', err);
+    res.status(500).json({ message: 'Error fetching files' });
+  }
+});
+
+// Download encrypted file + metadata
+router.get('/download/:filename', authMiddleware, async (req, res) => {
+  const filename = decodeURIComponent(req.params.filename);
+
+  try {
+    const file = await File.findOne({ user: req.user.id, filename });
+    if (!file) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.user.id}/${encodeURIComponent(file.filename)}`;
+
+    res.json({
+      fileUrl,
+      iv: file.iv,
+      encryptedAESKeyHex: file.encryptedAESKeyHex,
+      originalFileName: file.originalFileName,
+    });
+  } catch (err) {
+    console.error('DB fetch error:', err);
+    res.status(500).json({ message: 'Error fetching file metadata' });
+  }
 });
 
 module.exports = router;
