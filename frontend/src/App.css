@@ -1,10 +1,17 @@
 /* General layout */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent any scrollbars */
+}
+
 .app-layout {
   display: flex;
   height: 100vh;
   font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   overflow: hidden;
-  background: linear-gradient(135deg, #e0f7fa, #f8f9fa);
+  background: linear-gradient(135deg,rgb(152, 190, 219),rgb(103, 164, 210));
 }
 
 /* Sidebar */
@@ -16,8 +23,11 @@
   display: flex;
   flex-direction: column;
   padding: 20px 0;
-  transition: transform 0.3s ease;
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+  position: fixed;   /* 🔒 Sidebar locked */
+  top: 4;
+  left: 0;
+  height: 100vh;     /* Full height */
 }
 
 .sidebar h2 {
@@ -50,7 +60,7 @@
 }
 
 .sidebar button.active {
-  background: #1abc9c;
+  background: #89a9e7;
   font-weight: 600;
 }
 
@@ -62,38 +72,43 @@
 /* Main content */
 .main-content {
   flex: 1;
-  background: #f5f7fb;
-  overflow-y: auto;
-  scroll-behavior: smooth;
+  background: rgb(194, 220, 240);
+  overflow-y: hidden;
+  height: 100%;
   padding: 30px;
+  margin-left: 240px; /* 🔒 Prevent overlap with fixed sidebar */
 }
 
 /* Page sections as cards */
 .page-section {
-  min-height: 80vh;
-  background: white;
-  padding: 30px;
+  min-height: 100%;
+  background: rgb(205, 224, 239);
+  padding: 40px 20px;
   margin-bottom: 24px;
   border-radius: 16px;
+  border-bottom: 1px solid #c7dced;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   transition: transform 0.25s ease;
+  overflow: hidden;
 }
 
 .page-section:hover {
   transform: translateY(-4px);
 }
 
+:root {
+  scroll-padding-top: 60px; /* equal to your header height */
+}
+
 /* Headings */
 h1, h2, h3 {
-  color: #2c3e50;
+  color: #59a3ed;
   margin-bottom: 16px;
   font-weight: 600;
 }
 
 /* Forms */
-input[type="file"],
-input[type="text"],
-textarea {
+input[type="file"], input[type="text"], textarea {
   margin: 10px 0;
   padding: 12px 14px;
   border-radius: 10px;
@@ -104,9 +119,8 @@ textarea {
   transition: border 0.3s;
 }
 
-input:focus,
-textarea:focus {
-  border-color: #3498db;
+input:focus, textarea:focus {
+  border-color: #aecbdd;
   outline: none;
 }
 
@@ -125,7 +139,7 @@ button {
 }
 
 button:hover {
-  background: #2980b9;
+  background: #090f12;
   transform: translateY(-2px);
 }
 
@@ -137,7 +151,7 @@ ul {
 }
 
 ul li {
-  background: #f0f3f6;
+  background: rgb(185, 217, 242);
   padding: 12px;
   border-radius: 10px;
   margin-bottom: 8px;
