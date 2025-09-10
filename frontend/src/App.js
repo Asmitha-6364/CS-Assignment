@@ -16,6 +16,9 @@ import FileDownloader from "./components/FileDownloader";
 import VaultDashboard from "./components/VaultDashboard";
 import { fetchFileList } from "./utils/api";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import "./App.css";
 
 function AppContent() {
@@ -66,7 +69,12 @@ function AppContent() {
 
                   {/* Dashboard Section */}
                   <section id="dashboard" className="page-section">
-                    <h1>Secure File Vault Dashboard</h1>
+                    <h1>Welcome to Secure File Vault 🔐</h1>
+                    {user && (
+                      <p style={{ fontSize: "18px", marginTop: "10px" }}>
+                        Hello <strong>{user.email}</strong>, you are now logged in!
+                      </p>
+                    )}
                     <VaultDashboard files={files} />
                   </section>
 
@@ -99,9 +107,12 @@ function App() {
     <AuthProvider>
       <KeyProvider>
         <AppContent />
+        <ToastContainer />
       </KeyProvider>
     </AuthProvider>
   );
 }
 
 export default App;
+
+
