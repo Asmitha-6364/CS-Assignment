@@ -11,7 +11,7 @@ html, body {
   height: 100vh;
   font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   overflow: hidden;
-  background: linear-gradient(135deg,rgb(152, 190, 219),rgb(103, 164, 210));
+  background: linear-gradient(135deg,rgb(243, 245, 247),rgb(243, 244, 245));
 }
 
 /* Sidebar */
@@ -69,13 +69,16 @@ html, body {
   transform: translateX(-100%);
 }
 
+.div{
+  padding-top: 40px;
+}
 /* Main content */
 .main-content {
   flex: 1;
-  background: rgb(194, 220, 240);
+  background: rgb(244, 245, 246);
   overflow-y: hidden;
   height: 100%;
-  padding: 30px;
+  padding: 50px;
   margin-left: 240px; /* 🔒 Prevent overlap with fixed sidebar */
 }
 
@@ -105,12 +108,13 @@ h1, h2, h3 {
   color: #59a3ed;
   margin-bottom: 16px;
   font-weight: 600;
+  font-size: 24px; /* Set a consistent font size */
 }
 
 /* Forms */
 input[type="file"], input[type="text"], textarea {
   margin: 10px 0;
-  padding: 12px 14px;
+  padding: 16px 18px;
   border-radius: 10px;
   border: 1px solid #d1d9e6;
   width: 100%;
