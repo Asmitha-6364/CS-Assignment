@@ -96,6 +96,7 @@ const FileDownloader = () => {
   return (
     <div>
       <h3>Download and Decrypt File</h3>
+      <div className="decrypt-form">
       <input
         type="text"
         placeholder="Enter encrypted filename"
@@ -103,7 +104,10 @@ const FileDownloader = () => {
         onChange={(e) => setFilename(e.target.value.trim())}
       />
       <button onClick={handleDownloadAndDecrypt}>Download & Decrypt</button>
-      <p>{message}</p>
+      <p className={message.includes("successfully") ? "success" : message ? "error" : ""}>
+  {message}
+</p>
+    </div>
     </div>
   );
 };

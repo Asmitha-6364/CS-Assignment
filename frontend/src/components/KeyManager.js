@@ -18,19 +18,20 @@ const KeyManager = () => {
     <div>
       <h2>RSA Key Management</h2>
       <button onClick={handleGenerate}>Generate New RSA Key Pair</button>
-      <div>
+      <div className="key-boxes">
+      <div className="key-box">
         <label>Public Key (HEX, stored in localStorage):</label>
         <textarea rows="5" cols="80" value={publicKeyHex} readOnly />
       </div>
-      <div>
+      <div className="key-box">
         <label>Private Key (HEX, enter to decrypt files, never stored):</label>
         <textarea
           rows="5"
-          cols="80"
           value={privateKeyHex}
           onChange={(e) => setPrivateKeyHex(e.target.value.trim())}
           placeholder="Paste your private key here"
         />
+      </div>
       </div>
       <button onClick={clearPrivateKey}>Clear Private Key from Memory</button>
     </div>
